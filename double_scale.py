@@ -15,8 +15,12 @@ class DoubleScale(tk.Canvas):
         self.length = length
         self.thickness = thickness
         self.cursor_width = cursor_width
-        self.inside_offset = cursor_width / 2 + 1
+        self.cursor_half = cursor_width / 2
+        self.inside_offset = self.cursor_half + 1
+        self.cursor_y = [oy + 1, oy + thickness]
         self.offset = offset
+        self.text_y = oy / 2
+        self.text_y_under = self.text_y + oy + self.thickness
         self.coeff = length / (self.max_value - self.min_value)
         self.precision = precision
         self.value_a = self.min_value
@@ -71,16 +75,14 @@ class DoubleScale(tk.Canvas):
         self.draw_cursor(self.value_to_position(self.value_a), self.value_a)
         self.draw_cursor(self.value_to_position(self.value_b), self.value_b, True)
     
-    def draw_cursor(self, cursor_x, value, text_under=False):
+    def draw_cursor(self, x, value, text_under=False):
         """Draw the cursor at the specified position."""
-        w = self.cursor_width / 2
-        oy = self.offset[1]
-        self.draw_outset_box(cursor_x - w, oy + 1, cursor_x + w, oy + self.thickness, 
+        self.draw_outset_box(x - self.cursor_half, self.cursor_y[0], 
+                             x + self.cursor_half, self.cursor_y[1], 
                              '#eee', '#fff', '#555', 'cursor')
-        y = oy / 2
-        if text_under:
-            y += oy + self.thickness
-        self.create_text(cursor_x, y, text=str(value), tags='cursor')
+        
+        y = self.text_y_under if text_under else self.text_y
+        self.create_text(x, y, text=str(value), tags='cursor')
     
     def draw_outset_box(self, ax, ay, bx, by, bg='#bbb', outline_up='#999', 
                         outline_down='#fff', tags='background'):
@@ -93,7 +95,10 @@ class DoubleScale(tk.Canvas):
 
 if __name__ == '__main__':
     root = tk.Tk()
+    root.title('DoubleScale testing')
+    root.geometry('300x300+1000+200')
     DoubleScale(root).pack()
     DoubleScale(root, to=10, precision=2).pack()
     DoubleScale(root, from_=-100).pack()
+    DoubleScale(root, offset=[20, 30]).pack()
     root.mainloop()
