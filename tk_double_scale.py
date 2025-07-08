@@ -36,6 +36,9 @@ class DoubleScale(tk.Canvas):
         self.bind("<Button-1>", self.on_click)
         self.bind("<B1-Motion>", self.on_drag)
     
+    def get_values(self):
+        return [self.value_a, self.value_b]
+    
     def value_to_position(self, value):
         """Convert a value to its corresponding position on the scale."""
         return (value - self.from_) * self.coeff + self.offset_x + self.inside_offset
