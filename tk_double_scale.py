@@ -39,6 +39,11 @@ class DoubleScale(tk.Canvas):
     def get_values(self):
         return [self.value_a, self.value_b]
     
+    def set_values(self, a, b):
+        self.value_a = a
+        self.value_b = b
+        self.redraw()
+    
     def value_to_position(self, value):
         """Convert a value to its corresponding position on the scale."""
         return (value - self.from_) * self.coeff + self.offset_x + self.inside_offset
