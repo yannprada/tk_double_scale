@@ -10,14 +10,14 @@ NO_CURSOR = None
 @dataclass
 class DoubleScale(tk.Canvas): 
     master: tk.Widget
-    from_: float = 0
-    to: float = 100
-    length: int = 100
+    from_: float = 0        # value min
+    to: float = 100         # value max
+    length: int = 100       # widget length and thickness in pixels
     thickness: int = 15
     cursor_width: int = 10
-    offset_x: int = 5
+    offset_x: int = 5       # widget top left corner
     offset_y: int = 15
-    precision: int = 0
+    precision: int = 0      # number of decimals (value <= 0: int, value > 0: float)
     
     def __post_init__(self):
         w = self.length + (self.offset_x * 2) + self.cursor_width
@@ -25,6 +25,7 @@ class DoubleScale(tk.Canvas):
         super().__init__(self.master, width=w, height=h)
         
         # Initialize parameters
+        self.precision = abs(self.precision)
         self.cursor_half = self.cursor_width / 2
         self.inside_offset = self.cursor_half + 1
         oy = self.offset_y
@@ -59,6 +60,10 @@ class DoubleScale(tk.Canvas):
         """Convert a position on the scale back to a value."""
         return (position - self.offset_x - self.inside_offset) / self.coeff + self.from_
     
+    def pos_to_value_rounded(self, position):
+        new_value = round(self.position_to_value(position), self.precision)
+        return int(new_value) if self.precision == 0 else new_value
+    
     def on_click(self, event):
         """Determine which value is being dragged."""
         self.dragging_value = NO_CURSOR
@@ -87,13 +92,14 @@ class DoubleScale(tk.Canvas):
     def on_drag(self, event):
         """Update the value based on the drag position."""
         if self.dragging_value:
-            new_value = round(self.position_to_value(event.x), self.precision)
-            if self.precision == 0:
-                new_value = int(new_value)
+            new_value = self.pos_to_value_rounded(event.x)
+            
             if self.dragging_value == CURSOR_A:
                 self.value_a = max(self.from_, min(new_value, self.value_b))
+            
             elif self.dragging_value == CURSOR_B:
                 self.value_b = min(self.to, max(new_value, self.value_a))
+            
             self.redraw()
     
     def draw_background(self):
@@ -132,7 +138,8 @@ if __name__ == '__main__':
     root.title('DoubleScale testing')
     root.geometry('300x300+1000+200')
     DoubleScale(root).pack()
-    DoubleScale(root, to=10, precision=2).pack()
+    DoubleScale(root, to=10, precision=1).pack()
+    DoubleScale(root, to=1, precision=-2).pack()
     DoubleScale(root, from_=-100).pack()
     DoubleScale(root, offset_y=40).pack()
     root.mainloop()
