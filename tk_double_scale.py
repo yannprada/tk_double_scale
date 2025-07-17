@@ -2,6 +2,11 @@ import tkinter as tk
 from dataclasses import dataclass
 
 
+CURSOR_A = 'a'
+CURSOR_B = 'b'
+NO_CURSOR = None
+
+
 @dataclass
 class DoubleScale(tk.Canvas): 
     master: tk.Widget
@@ -56,28 +61,28 @@ class DoubleScale(tk.Canvas):
     
     def on_click(self, event):
         """Determine which value is being dragged."""
-        self.dragging_value = None
+        self.dragging_value = NO_CURSOR
         xa = self.value_to_position(self.value_a)
         xb = self.value_to_position(self.value_b)
         
         if self.value_a == self.value_b:
             
             if self.value_a == self.from_:
-                self.dragging_value = 'value_b'
+                self.dragging_value = CURSOR_B
             
             elif self.value_b == self.to:
-                self.dragging_value = 'value_a'
+                self.dragging_value = CURSOR_A
             
             elif abs(event.x - xa) < 10:
                 # use y to determine which cursor should be moved
-                self.dragging_value = ('value_a' if event.y < self.cursor_y_delimiter 
-                                       else 'value_b')
+                self.dragging_value = (CURSOR_A if event.y < self.cursor_y_delimiter 
+                                       else CURSOR_B)
         
         elif abs(event.x - xa) < 10:
-            self.dragging_value = 'value_a'
+            self.dragging_value = CURSOR_A
         
         elif abs(event.x - xb) < 10:
-            self.dragging_value = 'value_b'
+            self.dragging_value = CURSOR_B
     
     def on_drag(self, event):
         """Update the value based on the drag position."""
@@ -85,9 +90,9 @@ class DoubleScale(tk.Canvas):
             new_value = round(self.position_to_value(event.x), self.precision)
             if self.precision == 0:
                 new_value = int(new_value)
-            if self.dragging_value == 'value_a':
+            if self.dragging_value == CURSOR_A:
                 self.value_a = max(self.from_, min(new_value, self.value_b))
-            elif self.dragging_value == 'value_b':
+            elif self.dragging_value == CURSOR_B:
                 self.value_b = min(self.to, max(new_value, self.value_a))
             self.redraw()
     
