@@ -23,7 +23,8 @@ class DoubleScale(tk.Canvas):
         self.cursor_half = self.cursor_width / 2
         self.inside_offset = self.cursor_half + 1
         oy = self.offset_y
-        self.cursor_y = [oy + 1, oy + self.thickness]
+        self.cursor_y_a = [oy + 1, oy + (self.thickness / 2)]
+        self.cursor_y_b = [oy + (self.thickness / 2), oy + self.thickness]
         self.text_y = [oy / 2, oy / 2 + oy + self.thickness]
         self.coeff = self.length / (self.to - self.from_)
         self.value_a = self.from_
@@ -55,12 +56,26 @@ class DoubleScale(tk.Canvas):
     def on_click(self, event):
         """Determine which value is being dragged."""
         pos = event.x
-        if abs(pos - self.value_to_position(self.value_a)) < 10:
+        pos_a = self.value_to_position(self.value_a)
+        pos_b = self.value_to_position(self.value_b)
+        self.dragging_value = None
+        
+        if self.value_a == self.value_b:
+            
+            if self.value_a == self.from_:
+                self.dragging_value = 'value_b'
+            
+            elif self.value_b == self.to:
+                self.dragging_value = 'value_a'
+            
+            elif abs(pos - pos_a) < 10:
+                self.dragging_value = 'value_a' if pos < pos_a else 'value_b'
+        
+        elif abs(pos - pos_a) < 10:
             self.dragging_value = 'value_a'
-        elif abs(pos - self.value_to_position(self.value_b)) < 10:
+        
+        elif abs(pos - pos_b) < 10:
             self.dragging_value = 'value_b'
-        else:
-            self.dragging_value = None
     
     def on_drag(self, event):
         """Update the value based on the drag position."""
@@ -88,8 +103,9 @@ class DoubleScale(tk.Canvas):
     
     def draw_cursor(self, x, value, text_under=False):
         """Draw the cursor at the specified position."""
-        self.draw_outset_box(x - self.cursor_half, self.cursor_y[0], 
-                             x + self.cursor_half, self.cursor_y[1], 
+        cursor_y = self.cursor_y_b if text_under else self.cursor_y_a
+        self.draw_outset_box(x - self.cursor_half, cursor_y[0], 
+                             x + self.cursor_half, cursor_y[1], 
                              '#eee', '#fff', '#555', 'cursor')
         
         y = self.text_y[1] if text_under else self.text_y[0]
