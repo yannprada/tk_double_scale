@@ -23,8 +23,9 @@ class DoubleScale(tk.Canvas):
         self.cursor_half = self.cursor_width / 2
         self.inside_offset = self.cursor_half + 1
         oy = self.offset_y
-        self.cursor_y_a = [oy + 1, oy + (self.thickness / 2)]
-        self.cursor_y_b = [oy + (self.thickness / 2), oy + self.thickness]
+        self.cursor_y_delimiter = oy + (self.thickness / 2)
+        self.cursor_y_a = [oy + 1, self.cursor_y_delimiter - 1]
+        self.cursor_y_b = [self.cursor_y_delimiter, oy + self.thickness - 1]
         self.text_y = [oy / 2, oy / 2 + oy + self.thickness]
         self.coeff = self.length / (self.to - self.from_)
         self.value_a = self.from_
@@ -55,10 +56,9 @@ class DoubleScale(tk.Canvas):
     
     def on_click(self, event):
         """Determine which value is being dragged."""
-        pos = event.x
-        pos_a = self.value_to_position(self.value_a)
-        pos_b = self.value_to_position(self.value_b)
         self.dragging_value = None
+        xa = self.value_to_position(self.value_a)
+        xb = self.value_to_position(self.value_b)
         
         if self.value_a == self.value_b:
             
@@ -68,13 +68,15 @@ class DoubleScale(tk.Canvas):
             elif self.value_b == self.to:
                 self.dragging_value = 'value_a'
             
-            elif abs(pos - pos_a) < 10:
-                self.dragging_value = 'value_a' if pos < pos_a else 'value_b'
+            elif abs(event.x - xa) < 10:
+                # use y to determine which cursor should be moved
+                self.dragging_value = ('value_a' if event.y < self.cursor_y_delimiter 
+                                       else 'value_b')
         
-        elif abs(pos - pos_a) < 10:
+        elif abs(event.x - xa) < 10:
             self.dragging_value = 'value_a'
         
-        elif abs(pos - pos_b) < 10:
+        elif abs(event.x - xb) < 10:
             self.dragging_value = 'value_b'
     
     def on_drag(self, event):
