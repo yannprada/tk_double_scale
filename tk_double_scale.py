@@ -2,9 +2,17 @@ import tkinter as tk
 from dataclasses import dataclass
 
 
-CURSOR_A = 'a'
-CURSOR_B = 'b'
-NO_CURSOR = None
+@dataclass
+class Cursor:
+    width: int
+    height: int
+    value: float
+    y1: int
+    y2: int
+    text_under: bool = False
+    
+    def __post_init__(self):
+        pass
 
 
 @dataclass
@@ -34,8 +42,23 @@ class DoubleScale(tk.Canvas):
         self.cursor_y_b = [self.cursor_y_delimiter, oy + self.thickness - 1]
         self.text_y = [oy / 2, oy / 2 + oy + self.thickness]
         self.coeff = self.length / (self.to - self.from_)
-        self.value_a = self.from_
-        self.value_b = self.to
+        
+        cursor_height = self.thickness - 3 / 2
+        self.cursor_a = Cursor(
+            self.cursor_width, 
+            cursor_height, 
+            value=self.from_, 
+            y1=self.offset_y + 1, 
+            y2=self.cursor_y_delimiter - 1
+        )
+        self.cursor_b = Cursor(
+            self.cursor_width, 
+            cursor_height, 
+            value=self.to, 
+            y1=self.cursor_y_delimiter, 
+            y2=self.offset_y + self.thickness - 1,
+            text_under = True
+        )
         
         self.draw_background()
         self.redraw()
@@ -45,11 +68,11 @@ class DoubleScale(tk.Canvas):
         self.bind("<B1-Motion>", self.on_drag)
     
     def get_values(self):
-        return [self.value_a, self.value_b]
+        return [self.cursor_a.value, self.cursor_b.value]
     
     def set_values(self, a, b):
-        self.value_a = a
-        self.value_b = b
+        self.cursor_a.value = a
+        self.cursor_b.value = b
         self.redraw()
     
     def value_to_position(self, value):
@@ -66,39 +89,39 @@ class DoubleScale(tk.Canvas):
     
     def on_click(self, event):
         """Determine which value is being dragged."""
-        self.dragging_value = NO_CURSOR
-        xa = self.value_to_position(self.value_a)
-        xb = self.value_to_position(self.value_b)
+        self.dragged_cursor = None
+        xa = self.value_to_position(self.cursor_a.value)
+        xb = self.value_to_position(self.cursor_b.value)
         
-        if self.value_a == self.value_b:
+        if self.cursor_a.value == self.cursor_b.value:
             
-            if self.value_a == self.from_:
-                self.dragging_value = CURSOR_B
+            if self.cursor_a.value == self.from_:
+                self.dragged_cursor = self.cursor_b
             
-            elif self.value_b == self.to:
-                self.dragging_value = CURSOR_A
+            elif self.cursor_b.value == self.to:
+                self.dragged_cursor = self.cursor_a
             
             elif abs(event.x - xa) < 10:
                 # use y to determine which cursor should be moved
-                self.dragging_value = (CURSOR_A if event.y < self.cursor_y_delimiter 
-                                       else CURSOR_B)
+                self.dragged_cursor = (self.cursor_a if event.y < self.cursor_y_delimiter 
+                                       else self.cursor_b)
         
         elif abs(event.x - xa) < 10:
-            self.dragging_value = CURSOR_A
+            self.dragged_cursor = self.cursor_a
         
         elif abs(event.x - xb) < 10:
-            self.dragging_value = CURSOR_B
+            self.dragged_cursor = self.cursor_b
     
     def on_drag(self, event):
         """Update the value based on the drag position."""
-        if self.dragging_value:
+        if self.dragged_cursor:
             new_value = self.pos_to_value_rounded(event.x)
             
-            if self.dragging_value == CURSOR_A:
-                self.value_a = max(self.from_, min(new_value, self.value_b))
+            if self.dragged_cursor == self.cursor_a:
+                self.cursor_a.value = max(self.from_, min(new_value, self.cursor_b.value))
             
-            elif self.dragging_value == CURSOR_B:
-                self.value_b = min(self.to, max(new_value, self.value_a))
+            elif self.dragged_cursor == self.cursor_b:
+                self.cursor_b.value = min(self.to, max(new_value, self.cursor_a.value))
             
             self.redraw()
     
@@ -111,18 +134,20 @@ class DoubleScale(tk.Canvas):
     def redraw(self):
         """Redraw the scale and the cursor positions."""
         self.delete('cursor')
-        self.draw_cursor(self.value_to_position(self.value_a), self.value_a)
-        self.draw_cursor(self.value_to_position(self.value_b), self.value_b, True)
+        self.draw_cursor(self.cursor_a)
+        self.draw_cursor(self.cursor_b)
     
-    def draw_cursor(self, x, value, text_under=False):
+    def draw_cursor(self, cursor):
         """Draw the cursor at the specified position."""
-        cursor_y = self.cursor_y_b if text_under else self.cursor_y_a
+        x = self.value_to_position(cursor.value)
+        
+        cursor_y = self.cursor_y_b if cursor.text_under else self.cursor_y_a
         self.draw_outset_box(x - self.cursor_half, cursor_y[0], 
                              x + self.cursor_half, cursor_y[1], 
                              '#eee', '#fff', '#555', 'cursor')
         
-        y = self.text_y[1] if text_under else self.text_y[0]
-        self.create_text(x, y, text=str(value), tags='cursor')
+        y = self.text_y[1] if cursor.text_under else self.text_y[0]
+        self.create_text(x, y, text=str(cursor.value), tags='cursor')
     
     def draw_outset_box(self, ax, ay, bx, by, bg='#bbb', outline_up='#999', 
                         outline_down='#fff', tags='background'):
