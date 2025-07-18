@@ -15,4 +15,4 @@ DoubleScale(root, offset_y=40, cursor_color='blue', cursor_outline_up='lightblue
 root.mainloop()
 ```
 
-![DoubleScale test](/repository/blob/6713d41b7dd10e043d4ff7abd08ec879894264ff/test.png "DoubleScale test")
+![DoubleScale test](https://github.com/yannprada/tk_double_scale/blob/6713d41b7dd10e043d4ff7abd08ec879894264ff/test.png "DoubleScale test")
