@@ -17,4 +17,4 @@ DoubleScale(root, length=200, thickness=30, cursor_width=30).pack()
 root.mainloop()
 ```
 
-![DoubleScale test](https://github.com/yannprada/tk_double_scale/blob/6713d41b7dd10e043d4ff7abd08ec879894264ff/test.png "DoubleScale test")
+![DoubleScale test](https://github.com/yannprada/tk_double_scale/blob/12be68222b6f1f63bd104862c56a196fb3490a64/test.png "DoubleScale test")
