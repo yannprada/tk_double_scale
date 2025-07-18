@@ -28,6 +28,7 @@ class DoubleScale(tk.Canvas):
     offset_y: int = 15
     decimals: int = 0       # number of decimals (value <= 0: int, value > 0: float)
     
+    
     def __post_init__(self):
         w = self.length + (self.offset_x * 2) + self.cursor_width
         h = self.thickness + (self.offset_y * 2)
@@ -83,11 +84,12 @@ class DoubleScale(tk.Canvas):
         return (position - self.offset_x - self.inside_offset) / self.coeff + self.from_
     
     def pos_to_value_rounded(self, position):
+        """Convert a position on the scale back to a value, rounded."""
         new_value = round(self.position_to_value(position), self.decimals)
         return int(new_value) if self.decimals == 0 else new_value
     
     def on_click(self, event):
-        """Determine which value is being dragged."""
+        """Determine which cursor is being dragged."""
         self.dragged_cursor = None
         xa = self.value_to_position(self.cursor_a.value)
         xb = self.value_to_position(self.cursor_b.value)
@@ -113,7 +115,7 @@ class DoubleScale(tk.Canvas):
             self.dragged_cursor = self.cursor_b
     
     def on_drag(self, event):
-        """Update the value based on the drag position."""
+        """Update the value based on the cursor position, and redraw the cursors."""
         if self.dragged_cursor:
             new_value = self.pos_to_value_rounded(event.x)
             
@@ -132,13 +134,13 @@ class DoubleScale(tk.Canvas):
         self.draw_outset_box(self.offset_x, self.offset_y, bx, by)
     
     def redraw(self):
-        """Redraw the scale and the cursor positions."""
+        """Redraw the cursors."""
         self.delete('cursor')
         self.draw_cursor(self.cursor_a)
         self.draw_cursor(self.cursor_b)
     
     def draw_cursor(self, cursor):
-        """Draw the cursor at the specified position."""
+        """Draw the cursor."""
         x = self.value_to_position(cursor.value)
         
         self.draw_outset_box(x - cursor.half_width, cursor.y1, 
