@@ -18,3 +18,23 @@ root.mainloop()
 ```
 
 ![DoubleScale test](https://github.com/yannprada/tk_double_scale/blob/12be68222b6f1f63bd104862c56a196fb3490a64/test.png "DoubleScale test")
+
+Here are all the parameters currently supported by DoubleScale:
+
+```python
+master: tk.Widget
+from_: float      	# value min
+to: float         	# value max
+length: int       	# widget length and thickness in pixels
+thickness: int
+cursor_width: int 	# cursor width
+offset_x: int		# widget top left corner
+offset_y: int
+decimals: int		# values precision
+bg_color: str		# color options
+bg_outline_up: str
+bg_outline_down: str
+cursor_color: str =
+cursor_outline_up: str
+cursor_outline_down: str
+```
