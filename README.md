@@ -15,4 +15,4 @@ DoubleScale(root, offset_y=40, cursor_color='blue', cursor_outline_up='lightblue
 root.mainloop()
 ```
 
-![DoubleScale test](/repository/test.png?raw=true "DoubleScale test")
+![DoubleScale test](/repository/blob/main/test.png?raw=true "DoubleScale test")
