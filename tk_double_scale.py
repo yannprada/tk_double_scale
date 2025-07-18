@@ -9,10 +9,11 @@ class Cursor:
     value: float
     y1: int
     y2: int
+    text_y: int
     text_under: bool = False
     
     def __post_init__(self):
-        pass
+        self.half_width = self.width / 2
 
 
 @dataclass
@@ -25,7 +26,7 @@ class DoubleScale(tk.Canvas):
     cursor_width: int = 10
     offset_x: int = 5       # widget top left corner
     offset_y: int = 15
-    precision: int = 0      # number of decimals (value <= 0: int, value > 0: float)
+    decimals: int = 0       # number of decimals (value <= 0: int, value > 0: float)
     
     def __post_init__(self):
         w = self.length + (self.offset_x * 2) + self.cursor_width
@@ -33,14 +34,10 @@ class DoubleScale(tk.Canvas):
         super().__init__(self.master, width=w, height=h)
         
         # Initialize parameters
-        self.precision = abs(self.precision)
-        self.cursor_half = self.cursor_width / 2
-        self.inside_offset = self.cursor_half + 1
+        self.decimals = abs(self.decimals)
+        self.inside_offset = self.cursor_width / 2 + 1
         oy = self.offset_y
         self.cursor_y_delimiter = oy + (self.thickness / 2)
-        self.cursor_y_a = [oy + 1, self.cursor_y_delimiter - 1]
-        self.cursor_y_b = [self.cursor_y_delimiter, oy + self.thickness - 1]
-        self.text_y = [oy / 2, oy / 2 + oy + self.thickness]
         self.coeff = self.length / (self.to - self.from_)
         
         cursor_height = self.thickness - 3 / 2
@@ -49,7 +46,8 @@ class DoubleScale(tk.Canvas):
             cursor_height, 
             value=self.from_, 
             y1=self.offset_y + 1, 
-            y2=self.cursor_y_delimiter - 1
+            y2=self.cursor_y_delimiter - 1,
+            text_y=self.offset_y / 2
         )
         self.cursor_b = Cursor(
             self.cursor_width, 
@@ -57,6 +55,7 @@ class DoubleScale(tk.Canvas):
             value=self.to, 
             y1=self.cursor_y_delimiter, 
             y2=self.offset_y + self.thickness - 1,
+            text_y=self.offset_y * 1.5 + self.thickness,
             text_under = True
         )
         
@@ -84,8 +83,8 @@ class DoubleScale(tk.Canvas):
         return (position - self.offset_x - self.inside_offset) / self.coeff + self.from_
     
     def pos_to_value_rounded(self, position):
-        new_value = round(self.position_to_value(position), self.precision)
-        return int(new_value) if self.precision == 0 else new_value
+        new_value = round(self.position_to_value(position), self.decimals)
+        return int(new_value) if self.decimals == 0 else new_value
     
     def on_click(self, event):
         """Determine which value is being dragged."""
@@ -103,7 +102,8 @@ class DoubleScale(tk.Canvas):
             
             elif abs(event.x - xa) < 10:
                 # use y to determine which cursor should be moved
-                self.dragged_cursor = (self.cursor_a if event.y < self.cursor_y_delimiter 
+                self.dragged_cursor = (self.cursor_a 
+                                       if event.y < self.cursor_y_delimiter 
                                        else self.cursor_b)
         
         elif abs(event.x - xa) < 10:
@@ -141,13 +141,11 @@ class DoubleScale(tk.Canvas):
         """Draw the cursor at the specified position."""
         x = self.value_to_position(cursor.value)
         
-        cursor_y = self.cursor_y_b if cursor.text_under else self.cursor_y_a
-        self.draw_outset_box(x - self.cursor_half, cursor_y[0], 
-                             x + self.cursor_half, cursor_y[1], 
+        self.draw_outset_box(x - cursor.half_width, cursor.y1, 
+                             x + cursor.half_width, cursor.y2, 
                              '#eee', '#fff', '#555', 'cursor')
         
-        y = self.text_y[1] if cursor.text_under else self.text_y[0]
-        self.create_text(x, y, text=str(cursor.value), tags='cursor')
+        self.create_text(x, cursor.text_y, text=str(cursor.value), tags='cursor')
     
     def draw_outset_box(self, ax, ay, bx, by, bg='#bbb', outline_up='#999', 
                         outline_down='#fff', tags='background'):
@@ -163,8 +161,8 @@ if __name__ == '__main__':
     root.title('DoubleScale testing')
     root.geometry('300x300+1000+200')
     DoubleScale(root).pack()
-    DoubleScale(root, to=10, precision=1).pack()
-    DoubleScale(root, to=1, precision=-2).pack()
+    DoubleScale(root, to=10, decimals=1).pack()
+    DoubleScale(root, to=1, decimals=-2).pack()
     DoubleScale(root, from_=-100).pack()
     DoubleScale(root, offset_y=40).pack()
     root.mainloop()
