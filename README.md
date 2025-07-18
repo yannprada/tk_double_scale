@@ -34,7 +34,7 @@ decimals: int		# values precision
 bg_color: str		# color options
 bg_outline_up: str
 bg_outline_down: str
-cursor_color: str =
+cursor_color: str
 cursor_outline_up: str
 cursor_outline_down: str
 ```
