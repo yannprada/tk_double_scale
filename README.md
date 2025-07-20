@@ -4,7 +4,7 @@ tkinter widget
 
 Methods:
 ```python
-DoubleScale.get_values()					# -> [float, float]
+DoubleScale.get_values()				# -> [float, float]
 DoubleScale.set_values(a: float, b: float)
 ```
 
