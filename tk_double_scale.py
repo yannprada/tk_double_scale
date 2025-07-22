@@ -26,7 +26,7 @@ class DoubleScale(tk.Canvas):
     cursor_width: int = 10
     offset_x: int = 5       # widget top left corner
     offset_y: int = 15
-    decimals: int = 0       # number of decimals (value <= 0: int, value > 0: float)
+    decimals: int = 0       # number of decimals
     bg_color: str = '#bbb'
     bg_outline_up: str = '#999'
     bg_outline_down: str = '#fff'
@@ -89,8 +89,7 @@ class DoubleScale(tk.Canvas):
     
     def pos_to_value_rounded(self, position):
         """Convert a position on the scale back to a value, rounded."""
-        new_value = round(self.position_to_value(position), self.decimals)
-        return int(new_value) if self.decimals == 0 else new_value
+        return round(self.position_to_value(position), self.decimals)
     
     def on_click(self, event):
         """Determine which cursor is being dragged."""
@@ -154,7 +153,8 @@ class DoubleScale(tk.Canvas):
                              self.cursor_color, self.cursor_outline_up, 
                              self.cursor_outline_down, tags='cursor')
         
-        self.create_text(x, cursor.text_y, text=str(cursor.value), tags='cursor')
+        display_val = int(cursor.value) if self.decimals == 0 else cursor.value
+        self.create_text(x, cursor.text_y, text=str(display_val), tags='cursor')
     
     def draw_outset_box(self, xa, ya, xb, yb, bg_color, outline_up, outline_down, tags):
         """Draw a 3D effect box."""
