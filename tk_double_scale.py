@@ -1,4 +1,5 @@
 import tkinter as tk
+import tkinter.font as tkfont
 from dataclasses import dataclass
 
 
@@ -24,8 +25,6 @@ class DoubleScale(tk.Canvas):
     length: int = 100       # widget length and thickness in pixels
     thickness: int = 15
     cursor_width: int = 10
-    offset_x: int = 5       # widget top left corner
-    offset_y: int = 15
     decimals: int = 0       # number of decimals
     bg_color: str = '#bbb'
     bg_outline_up: str = '#999'
@@ -33,16 +32,23 @@ class DoubleScale(tk.Canvas):
     cursor_color: str = '#eee'
     cursor_outline_up: str = '#fff'
     cursor_outline_down: str = '#555'
+    font: str = None
     
     def __post_init__(self):
-        width = self.length + (self.offset_x * 2) + self.cursor_width
-        height = self.thickness + (self.offset_y * 2)
+        self.font = tkfont.Font(font=self.font)
+        self.linespace = self.font.metrics('linespace')
+        self.text_y = self.font.metrics('ascent') / 2
+        text_width = self.font.measure(self.to)
+        self.offset_x = max(10, text_width / 2 - self.cursor_width / 2)
+
+        width = self.offset_x * 2 + self.length + self.cursor_width
+        height = self.linespace * 1.8 + self.thickness
         super().__init__(self.master, width=width, height=height)
         
         # Initialize parameters
         self.decimals = abs(self.decimals)
         self.inside_offset = self.cursor_width / 2 + 1
-        self.cursor_y_delimiter = self.offset_y + (self.thickness / 2)
+        self.cursor_y_delimiter = self.linespace + (self.thickness / 2)
         self.coeff = self.length / (self.to - self.from_)
         
         cursor_height = (self.thickness - 3) / 2
@@ -50,17 +56,17 @@ class DoubleScale(tk.Canvas):
             self.cursor_width, 
             cursor_height, 
             value=self.from_, 
-            y1=self.offset_y + 1, 
+            y1=self.linespace + 1, 
             y2=self.cursor_y_delimiter - 1,
-            text_y=self.offset_y / 2
+            text_y=self.text_y
         )
         self.cursor_b = Cursor(
             self.cursor_width, 
             cursor_height, 
             value=self.to, 
             y1=self.cursor_y_delimiter, 
-            y2=self.offset_y + self.thickness - 1,
-            text_y=self.offset_y * 1.5 + self.thickness,
+            y2=self.linespace + self.thickness - 1,
+            text_y=self.linespace + self.thickness + self.text_y,
             text_under = True
         )
         
@@ -137,9 +143,9 @@ class DoubleScale(tk.Canvas):
     def draw_background(self):
         """Draw the background of the scale."""
         xb = self.offset_x + self.length + (self.inside_offset * 2)
-        yb = self.offset_y + self.thickness
+        yb = self.linespace + self.thickness
         self.draw_outset_box(
-            self.offset_x, self.offset_y, xb, yb, self.bg_color, 
+            self.offset_x, self.linespace, xb, yb, self.bg_color, 
             self.bg_outline_up, self.bg_outline_down, tags='background'
         )
     
@@ -159,8 +165,9 @@ class DoubleScale(tk.Canvas):
                              self.cursor_outline_down, tags='cursor')
         
         display_val = int(cursor.value) if self.decimals == 0 else cursor.value
-        self.create_text(x, cursor.text_y, text=str(display_val), tags='cursor')
-    
+        self.create_text(x, cursor.text_y, text=str(display_val), tags='cursor', 
+                         font=self.font)
+
     def draw_outset_box(self, xa, ya, xb, yb, bg_color, outline_up, 
                         outline_down, tags):
         """Draw a 3D effect box."""
@@ -175,13 +182,14 @@ if __name__ == '__main__':
     root = tk.Tk()
     root.title('DoubleScale testing')
     root.geometry('300x500+1000+200')
-    DoubleScale(root).pack()
+    root.configure(bg='grey')
+    DoubleScale(root, font='Calibri 20').pack()
     DoubleScale(root, to=10, decimals=1).pack()
     DoubleScale(root, to=1, decimals=-2).pack()
     DoubleScale(root, from_=-100).pack()
-    DoubleScale(root, offset_y=40, cursor_color='blue', 
+    DoubleScale(root, cursor_color='blue', 
                 cursor_outline_up='lightblue', cursor_outline_down='darkblue', 
                 bg_color='#0ff').pack()
-    DoubleScale(root, length=50).pack()
+    DoubleScale(root, length=50, font='Calibri 5', cursor_width=5).pack()
     DoubleScale(root, length=200, thickness=30, cursor_width=30).pack()
     root.mainloop()
