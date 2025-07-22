@@ -44,23 +44,32 @@ class DoubleScale(tk.Canvas):
     font: str = None
     
     def __post_init__(self):
-        # Initialize parameters
+        # Ensure decimals are positive
+        self.decimals = abs(self.decimals)
+
+        # Ensure font is a Font object
         self.font = tkfont.Font(font=self.font)
+
+        # Measure text width and calculate offsets
         text_width = self.font.measure(self.to)
         self.offset_x = max(10, text_width / 2 - self.cursor_width / 2)
         self.linespace = self.font.metrics('linespace')
 
+        # Calculate dimensions for the Canvas
         width = self.offset_x * 2 + self.length + self.cursor_width
         height = self.linespace * 1.8 + self.thickness
         super().__init__(self.master, width=width, height=height)
-        
-        self.decimals = abs(self.decimals)
+
+        # Calculate additional offsets and coefficients
         self.inside_offset = self.cursor_width / 2 + 1
         self.cursor_y_delimiter = self.linespace + (self.thickness / 2)
         self.coeff = self.length / (self.to - self.from_)
-        
+
+        # Define cursor dimensions
         cursor_height = (self.thickness - 3) / 2
         text_y = self.font.metrics('ascent') / 2
+
+        # Create cursor objects
         self.cursor_a = Cursor(
             self.cursor_width, 
             cursor_height, 
@@ -69,6 +78,7 @@ class DoubleScale(tk.Canvas):
             y2=self.cursor_y_delimiter - 1,
             text_y=text_y
         )
+
         self.cursor_b = Cursor(
             self.cursor_width, 
             cursor_height, 
@@ -76,9 +86,10 @@ class DoubleScale(tk.Canvas):
             y1=self.cursor_y_delimiter, 
             y2=self.linespace + self.thickness - 1,
             text_y=self.linespace + self.thickness + text_y,
-            text_under = True
+            text_under=True
         )
 
+        # Adjust colors for outlines
         self.bg_outline_up = adjust_color(self.bg_color, 0.5)
         self.bg_outline_down = adjust_color(self.bg_color, 1.5)
         self.cursor_outline_up = adjust_color(self.cursor_color, 1.5)
@@ -116,26 +127,29 @@ class DoubleScale(tk.Canvas):
     def on_click(self, event):
         """Determine which cursor is being dragged."""
         self.dragged_cursor = None
+        
+        # Calculate cursor positions
         xa = self.value_to_position(self.cursor_a.value)
         xb = self.value_to_position(self.cursor_b.value)
-        
+
+        # Check if both cursors are at the same position
         if self.cursor_a.value == self.cursor_b.value:
-            
+            # Determine which cursor to drag based on their values
             if self.cursor_a.value == self.from_:
                 self.dragged_cursor = self.cursor_b
-            
             elif self.cursor_b.value == self.to:
                 self.dragged_cursor = self.cursor_a
-            
             elif abs(event.x - xa) < 10:
-                # use y to determine which cursor should be moved
+                # Use y-coordinate to determine which cursor should be moved
                 self.dragged_cursor = (self.cursor_a 
                                        if event.y < self.cursor_y_delimiter 
                                        else self.cursor_b)
-        
+
+        # Check if the click is near cursor A
         elif abs(event.x - xa) < 10:
             self.dragged_cursor = self.cursor_a
-        
+
+        # Check if the click is near cursor B
         elif abs(event.x - xb) < 10:
             self.dragged_cursor = self.cursor_b
     
