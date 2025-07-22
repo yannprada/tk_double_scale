@@ -1,6 +1,18 @@
+import colorsys
+import PIL.ImageColor as ImageColor
 import tkinter as tk
 import tkinter.font as tkfont
 from dataclasses import dataclass
+
+
+def adjust_color(color_name, factor):
+    r, g, b = ImageColor.getrgb(color_name)
+    h, l, s = colorsys.rgb_to_hls(r / 255, g / 255, b / 255)
+    l = max(0, min(1, l * factor))
+
+    r, g, b = colorsys.hls_to_rgb(h, l, s)
+    r, g, b = int(r * 255), int(g * 255), int(b * 255)
+    return f'#{r:02x}{g:02x}{b:02x}'
 
 
 @dataclass
@@ -27,38 +39,34 @@ class DoubleScale(tk.Canvas):
     cursor_width: int = 10
     decimals: int = 0       # number of decimals
     bg_color: str = '#bbb'
-    bg_outline_up: str = '#999'
-    bg_outline_down: str = '#fff'
     cursor_color: str = '#eee'
-    cursor_outline_up: str = '#fff'
-    cursor_outline_down: str = '#555'
     font: str = None
     
     def __post_init__(self):
+        # Initialize parameters
         self.font = tkfont.Font(font=self.font)
-        self.linespace = self.font.metrics('linespace')
-        self.text_y = self.font.metrics('ascent') / 2
         text_width = self.font.measure(self.to)
         self.offset_x = max(10, text_width / 2 - self.cursor_width / 2)
+        self.linespace = self.font.metrics('linespace')
 
         width = self.offset_x * 2 + self.length + self.cursor_width
         height = self.linespace * 1.8 + self.thickness
         super().__init__(self.master, width=width, height=height)
         
-        # Initialize parameters
         self.decimals = abs(self.decimals)
         self.inside_offset = self.cursor_width / 2 + 1
         self.cursor_y_delimiter = self.linespace + (self.thickness / 2)
         self.coeff = self.length / (self.to - self.from_)
         
         cursor_height = (self.thickness - 3) / 2
+        text_y = self.font.metrics('ascent') / 2
         self.cursor_a = Cursor(
             self.cursor_width, 
             cursor_height, 
             value=self.from_, 
             y1=self.linespace + 1, 
             y2=self.cursor_y_delimiter - 1,
-            text_y=self.text_y
+            text_y=text_y
         )
         self.cursor_b = Cursor(
             self.cursor_width, 
@@ -66,9 +74,14 @@ class DoubleScale(tk.Canvas):
             value=self.to, 
             y1=self.cursor_y_delimiter, 
             y2=self.linespace + self.thickness - 1,
-            text_y=self.linespace + self.thickness + self.text_y,
+            text_y=self.linespace + self.thickness + text_y,
             text_under = True
         )
+
+        self.bg_outline_up = adjust_color(self.bg_color, 0.5)
+        self.bg_outline_down = adjust_color(self.bg_color, 1.5)
+        self.cursor_outline_up = adjust_color(self.cursor_color, 1.5)
+        self.cursor_outline_down = adjust_color(self.cursor_color, 0.5)
         
         self.draw_background()
         self.redraw()
@@ -187,9 +200,7 @@ if __name__ == '__main__':
     DoubleScale(root, to=10, decimals=1).pack(pady=5)
     DoubleScale(root, to=1, decimals=-2).pack(pady=5)
     DoubleScale(root, from_=-100).pack(pady=5)
-    DoubleScale(root, cursor_color='blue', 
-                cursor_outline_up='lightblue', cursor_outline_down='darkblue', 
-                bg_color='#0ff').pack(pady=5)
+    DoubleScale(root, cursor_color='blue', bg_color='#0ff').pack(pady=5)
     DoubleScale(root, length=50, font='Calibri 5', cursor_width=5).pack(pady=5)
     DoubleScale(root, length=200, thickness=30, cursor_width=30).pack(pady=5)
     root.mainloop()
