@@ -40,6 +40,7 @@ class DoubleScale(tk.Canvas):
     decimals: int = 0       # number of decimals
     bg_color: str = '#bbb'
     cursor_color: str = '#eee'
+    text_color: str = 'black'
     font: str = None
     
     def __post_init__(self):
@@ -179,7 +180,7 @@ class DoubleScale(tk.Canvas):
         
         display_val = int(cursor.value) if self.decimals == 0 else cursor.value
         self.create_text(x, cursor.text_y, text=str(display_val), tags='cursor', 
-                         font=self.font)
+                         font=self.font, fill=self.text_color)
 
     def draw_outset_box(self, xa, ya, xb, yb, bg_color, outline_up, 
                         outline_down, tags):
@@ -200,7 +201,8 @@ if __name__ == '__main__':
     DoubleScale(root, to=10, decimals=1).pack(pady=5)
     DoubleScale(root, to=1, decimals=-2).pack(pady=5)
     DoubleScale(root, from_=-100).pack(pady=5)
-    DoubleScale(root, cursor_color='blue', bg_color='#0ff').pack(pady=5)
+    DoubleScale(root, cursor_color='blue', bg_color='#0ff', text_color='blue'
+        ).pack(pady=5)
     DoubleScale(root, length=50, font='Calibri 5', cursor_width=5).pack(pady=5)
     DoubleScale(root, length=200, thickness=30, cursor_width=30).pack(pady=5)
     root.mainloop()
