@@ -81,11 +81,13 @@ class DoubleScale(tk.Canvas):
     
     def value_to_position(self, value):
         """Convert a value to its corresponding position on the scale."""
-        return (value - self.from_) * self.coeff + self.offset_x + self.inside_offset
+        return ((value - self.from_) * self.coeff + self.offset_x 
+                + self.inside_offset)
     
     def position_to_value(self, position):
         """Convert a position on the scale back to a value."""
-        return (position - self.offset_x - self.inside_offset) / self.coeff + self.from_
+        return ((position - self.offset_x - self.inside_offset) / self.coeff 
+                + self.from_)
     
     def pos_to_value_rounded(self, position):
         """Convert a position on the scale back to a value, rounded."""
@@ -123,10 +125,12 @@ class DoubleScale(tk.Canvas):
             new_value = self.pos_to_value_rounded(event.x)
             
             if self.dragged_cursor == self.cursor_a:
-                self.cursor_a.value = max(self.from_, min(new_value, self.cursor_b.value))
+                self.cursor_a.value = max(self.from_, min(new_value, 
+                                                          self.cursor_b.value))
             
             elif self.dragged_cursor == self.cursor_b:
-                self.cursor_b.value = min(self.to, max(new_value, self.cursor_a.value))
+                self.cursor_b.value = min(self.to, max(new_value, 
+                                                       self.cursor_a.value))
             
             self.redraw()
     
@@ -134,9 +138,10 @@ class DoubleScale(tk.Canvas):
         """Draw the background of the scale."""
         xb = self.offset_x + self.length + (self.inside_offset * 2)
         yb = self.offset_y + self.thickness
-        self.draw_outset_box(self.offset_x, self.offset_y, xb, yb, self.bg_color,
-                             self.bg_outline_up, self.bg_outline_down, 
-                             tags='background')
+        self.draw_outset_box(
+            self.offset_x, self.offset_y, xb, yb, self.bg_color, 
+            self.bg_outline_up, self.bg_outline_down, tags='background'
+        )
     
     def redraw(self):
         """Redraw the cursors."""
@@ -156,7 +161,8 @@ class DoubleScale(tk.Canvas):
         display_val = int(cursor.value) if self.decimals == 0 else cursor.value
         self.create_text(x, cursor.text_y, text=str(display_val), tags='cursor')
     
-    def draw_outset_box(self, xa, ya, xb, yb, bg_color, outline_up, outline_down, tags):
+    def draw_outset_box(self, xa, ya, xb, yb, bg_color, outline_up, 
+                        outline_down, tags):
         """Draw a 3D effect box."""
         self.create_rectangle(xa, ya, xb, yb, fill=bg_color, width=0, tags=tags)
         self.create_line(xa, ya, xb, ya, fill=outline_up, tags=tags)
@@ -173,8 +179,9 @@ if __name__ == '__main__':
     DoubleScale(root, to=10, decimals=1).pack()
     DoubleScale(root, to=1, decimals=-2).pack()
     DoubleScale(root, from_=-100).pack()
-    DoubleScale(root, offset_y=40, cursor_color='blue', cursor_outline_up='lightblue', 
-                cursor_outline_down='darkblue', bg_color='#0ff').pack()
+    DoubleScale(root, offset_y=40, cursor_color='blue', 
+                cursor_outline_up='lightblue', cursor_outline_down='darkblue', 
+                bg_color='#0ff').pack()
     DoubleScale(root, length=50).pack()
     DoubleScale(root, length=200, thickness=30, cursor_width=30).pack()
     root.mainloop()
