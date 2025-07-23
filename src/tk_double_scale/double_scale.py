@@ -32,9 +32,6 @@ class BoxColors:
         r, g, b = (int(c * 255) for c in colorsys.hls_to_rgb(h, l, s))
         return f'#{r:02x}{g:02x}{b:02x}'
 
-    def as_tuple(self):
-        return (self.base_color, self.up, self.down)
-
 
 @dataclass
 class Cursor:
