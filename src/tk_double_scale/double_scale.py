@@ -5,12 +5,35 @@ import tkinter.font as tkfont
 from dataclasses import dataclass
 
 
-def adjust_color(color_name, factor):
-    r, g, b = ImageColor.getrgb(color_name)
-    h, l, s = colorsys.rgb_to_hls(r / 255, g / 255, b / 255)
-    l = max(0, min(1, l * factor))
-    r, g, b = (int(c * 255) for c in colorsys.hls_to_rgb(h, l, s))
-    return f'#{r:02x}{g:02x}{b:02x}'
+@dataclass
+class BoxColors:
+    """Holds a base color and computes variants for outlines."""
+    base_color: str
+    light_factor: float = 1.5
+    dark_factor: float = 0.5
+    outset: bool = False
+
+    def __post_init__(self):
+        self.down = self.adjust_color(self.base_color, self.light_factor)
+        self.up = self.adjust_color(self.base_color, self.dark_factor)
+        if self.outset:
+            self.up, self.down = self.down, self.up
+
+    @staticmethod
+    def adjust_color(color_name, factor):
+        """
+        Adjusts the lightness of the given color by the specified factor.
+        Returns a hex color string.
+        """
+        r, g, b = ImageColor.getrgb(color_name)
+        r, g, b = (r / 255, g / 255, b / 255)
+        h, l, s = colorsys.rgb_to_hls(r, g, b)
+        l = max(0, min(1, l * factor))
+        r, g, b = (int(c * 255) for c in colorsys.hls_to_rgb(h, l, s))
+        return f'#{r:02x}{g:02x}{b:02x}'
+
+    def as_tuple(self):
+        return (self.base_color, self.up, self.down)
 
 
 @dataclass
@@ -89,18 +112,14 @@ class DoubleScale(tk.Canvas):
         )
 
         # Adjust colors for outlines
-        self.bg_outline_up = adjust_color(self.bg_color, 0.5)
-        self.bg_outline_down = adjust_color(self.bg_color, 1.5)
-        self.cursor_outline_up = adjust_color(self.cursor_color, 1.5)
-        self.cursor_outline_down = adjust_color(self.cursor_color, 0.5)
+        bg_colors = BoxColors(self.bg_color)
+        self.cursor_colors = BoxColors(self.cursor_color, outset=True)
         
         # Draw the background
         xb = self.offset_x + self.length + (self.inside_offset * 2)
         yb = self.linespace + self.thickness
-        self.draw_outset_box(
-            self.offset_x, self.linespace, xb, yb, self.bg_color, 
-            self.bg_outline_up, self.bg_outline_down, tags='background'
-        )
+        self.draw_outset_box(self.offset_x, self.linespace, xb, yb, 
+                             bg_colors, tags='background')
 
         self.redraw()
         
@@ -185,18 +204,17 @@ class DoubleScale(tk.Canvas):
         x = self.value_to_position(cursor.value)
         coords = cursor.get_box_coordinates(x)
         
-        self.draw_outset_box(*coords, self.cursor_color, self.cursor_outline_up, 
-                             self.cursor_outline_down, tags='cursor')
+        self.draw_outset_box(*coords, self.cursor_colors, tags='cursor')
         
         display_val = int(cursor.value) if self.decimals == 0 else cursor.value
         self.create_text(x, cursor.text_y, text=str(display_val), tags='cursor', 
                          font=self.font, fill=self.text_color)
 
-    def draw_outset_box(self, xa, ya, xb, yb, box_color, outline_up, 
-                        outline_down, tags):
+    def draw_outset_box(self, xa, ya, xb, yb, colors, tags):
         """Draw a 3D effect box."""
-        self.create_rectangle(xa, ya, xb, yb, fill=box_color, width=0, tags=tags)
-        self.create_line(xa, ya, xb, ya, fill=outline_up, tags=tags)
-        self.create_line(xa, ya, xa, yb, fill=outline_up, tags=tags)
-        self.create_line(xa, yb, xb, yb, fill=outline_down, tags=tags)
-        self.create_line(xb, ya, xb, yb, fill=outline_down, tags=tags)
+        self.create_rectangle(xa, ya, xb, yb, fill=colors.base_color, width=0, 
+                              tags=tags)
+        self.create_line(xa, ya, xb, ya, fill=colors.up, tags=tags)
+        self.create_line(xa, ya, xa, yb, fill=colors.up, tags=tags)
+        self.create_line(xa, yb, xb, yb, fill=colors.down, tags=tags)
+        self.create_line(xb, ya, xb, yb, fill=colors.down, tags=tags)
