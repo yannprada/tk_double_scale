@@ -2,6 +2,10 @@
 
 A tkinter widget that displays two cursors on a slider, to select two values.
 
+## Install
+
+`pip install tk-double-scale`
+
 ## Signature
 
 ```python
@@ -78,4 +82,4 @@ print(scale.get_values())   # > [25.0, 75.0]
 root.mainloop()
 ```
 
-![DoubleScale test](https://github.com/yannprada/tk_double_scale/blob/12be68222b6f1f63bd104862c56a196fb3490a64/test.png "DoubleScale test")
+![DoubleScale test](https://raw.githubusercontent.com/yannprada/tk_double_scale/refs/heads/main/demo.png "DoubleScale test")
