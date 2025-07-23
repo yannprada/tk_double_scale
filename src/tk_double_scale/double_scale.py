@@ -118,8 +118,8 @@ class DoubleScale(tk.Canvas):
         # Draw the background
         xb = self.offset_x + self.length + (self.inside_offset * 2)
         yb = self.linespace + self.thickness
-        self.draw_outset_box(self.offset_x, self.linespace, xb, yb, 
-                             bg_colors, tags='background')
+        self.draw_3d_box(self.offset_x, self.linespace, xb, yb, bg_colors, 
+                         tags='background')
 
         self.redraw()
         
@@ -204,13 +204,13 @@ class DoubleScale(tk.Canvas):
         x = self.value_to_position(cursor.value)
         coords = cursor.get_box_coordinates(x)
         
-        self.draw_outset_box(*coords, self.cursor_colors, tags='cursor')
+        self.draw_3d_box(*coords, self.cursor_colors, tags='cursor')
         
         display_val = int(cursor.value) if self.decimals == 0 else cursor.value
         self.create_text(x, cursor.text_y, text=str(display_val), tags='cursor', 
                          font=self.font, fill=self.text_color)
 
-    def draw_outset_box(self, xa, ya, xb, yb, colors, tags):
+    def draw_3d_box(self, xa, ya, xb, yb, colors, tags):
         """Draw a 3D effect box."""
         self.create_rectangle(xa, ya, xb, yb, fill=colors.base_color, width=0, 
                               tags=tags)
