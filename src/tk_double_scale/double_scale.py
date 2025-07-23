@@ -21,10 +21,12 @@ class Cursor:
     y1: int
     y2: int
     text_y: int
-    text_under: bool = False
     
     def __post_init__(self):
         self.half_width = self.width / 2
+
+    def get_box_coordinates(self, x):
+        return [x - self.half_width, self.y1, x + self.half_width, self.y2]
 
 
 @dataclass
@@ -83,8 +85,7 @@ class DoubleScale(tk.Canvas):
             value=self.to, 
             y1=self.cursor_y_delimiter, 
             y2=self.linespace + self.thickness - 1,
-            text_y=self.linespace + self.thickness + text_y,
-            text_under=True
+            text_y=self.linespace + self.thickness + text_y
         )
 
         # Adjust colors for outlines
@@ -182,37 +183,20 @@ class DoubleScale(tk.Canvas):
     def draw_cursor(self, cursor):
         """Draw the cursor."""
         x = self.value_to_position(cursor.value)
+        coords = cursor.get_box_coordinates(x)
         
-        self.draw_outset_box(x - cursor.half_width, cursor.y1, 
-                             x + cursor.half_width, cursor.y2, 
-                             self.cursor_color, self.cursor_outline_up, 
+        self.draw_outset_box(*coords, self.cursor_color, self.cursor_outline_up, 
                              self.cursor_outline_down, tags='cursor')
         
         display_val = int(cursor.value) if self.decimals == 0 else cursor.value
         self.create_text(x, cursor.text_y, text=str(display_val), tags='cursor', 
                          font=self.font, fill=self.text_color)
 
-    def draw_outset_box(self, xa, ya, xb, yb, bg_color, outline_up, 
+    def draw_outset_box(self, xa, ya, xb, yb, box_color, outline_up, 
                         outline_down, tags):
         """Draw a 3D effect box."""
-        self.create_rectangle(xa, ya, xb, yb, fill=bg_color, width=0, tags=tags)
+        self.create_rectangle(xa, ya, xb, yb, fill=box_color, width=0, tags=tags)
         self.create_line(xa, ya, xb, ya, fill=outline_up, tags=tags)
         self.create_line(xa, ya, xa, yb, fill=outline_up, tags=tags)
         self.create_line(xa, yb, xb, yb, fill=outline_down, tags=tags)
         self.create_line(xb, ya, xb, yb, fill=outline_down, tags=tags)
-
-
-if __name__ == '__main__':
-    root = tk.Tk()
-    root.title('DoubleScale testing')
-    root.geometry('300x500+1000+200')
-    root.configure(bg='grey')
-    DoubleScale(root, font='Calibri 20').pack(pady=5)
-    DoubleScale(root, to=10, decimals=1).pack(pady=5)
-    DoubleScale(root, to=1, decimals=-2).pack(pady=5)
-    DoubleScale(root, from_=-100).pack(pady=5)
-    DoubleScale(root, cursor_color='blue', bg_color='#0ff', text_color='blue'
-        ).pack(pady=5)
-    DoubleScale(root, length=50, font='Calibri 5', cursor_width=5).pack(pady=5)
-    DoubleScale(root, length=200, thickness=30, cursor_width=30).pack(pady=5)
-    root.mainloop()
