@@ -9,9 +9,7 @@ def adjust_color(color_name, factor):
     r, g, b = ImageColor.getrgb(color_name)
     h, l, s = colorsys.rgb_to_hls(r / 255, g / 255, b / 255)
     l = max(0, min(1, l * factor))
-
-    r, g, b = colorsys.hls_to_rgb(h, l, s)
-    r, g, b = int(r * 255), int(g * 255), int(b * 255)
+    r, g, b = (int(c * 255) for c in colorsys.hls_to_rgb(h, l, s))
     return f'#{r:02x}{g:02x}{b:02x}'
 
 
@@ -95,7 +93,14 @@ class DoubleScale(tk.Canvas):
         self.cursor_outline_up = adjust_color(self.cursor_color, 1.5)
         self.cursor_outline_down = adjust_color(self.cursor_color, 0.5)
         
-        self.draw_background()
+        # Draw the background
+        xb = self.offset_x + self.length + (self.inside_offset * 2)
+        yb = self.linespace + self.thickness
+        self.draw_outset_box(
+            self.offset_x, self.linespace, xb, yb, self.bg_color, 
+            self.bg_outline_up, self.bg_outline_down, tags='background'
+        )
+
         self.redraw()
         
         # Bind mouse events
@@ -155,27 +160,16 @@ class DoubleScale(tk.Canvas):
     
     def on_drag(self, event):
         """Update the value based on the cursor position, and redraw the cursors."""
-        if self.dragged_cursor:
-            new_value = self.pos_to_value_rounded(event.x)
-            
-            if self.dragged_cursor == self.cursor_a:
-                self.cursor_a.value = max(self.from_, min(new_value, 
-                                                          self.cursor_b.value))
-            
-            elif self.dragged_cursor == self.cursor_b:
-                self.cursor_b.value = min(self.to, max(new_value, 
-                                                       self.cursor_a.value))
-            
-            self.redraw()
-    
-    def draw_background(self):
-        """Draw the background of the scale."""
-        xb = self.offset_x + self.length + (self.inside_offset * 2)
-        yb = self.linespace + self.thickness
-        self.draw_outset_box(
-            self.offset_x, self.linespace, xb, yb, self.bg_color, 
-            self.bg_outline_up, self.bg_outline_down, tags='background'
-        )
+        if not self.dragged_cursor:
+            return
+
+        new_value = self.pos_to_value_rounded(event.x)
+        if self.dragged_cursor == self.cursor_a:
+            self.cursor_a.value = max(self.from_, min(new_value, self.cursor_b.value))
+        else:  # Assuming self.dragged_cursor == self.cursor_b
+            self.cursor_b.value = min(self.to, max(new_value, self.cursor_a.value))
+
+        self.redraw()
     
     def redraw(self):
         """Redraw the cursors."""
