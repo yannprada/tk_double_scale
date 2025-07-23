@@ -165,9 +165,11 @@ class DoubleScale(tk.Canvas):
 
         new_value = self.pos_to_value_rounded(event.x)
         if self.dragged_cursor == self.cursor_a:
-            self.cursor_a.value = max(self.from_, min(new_value, self.cursor_b.value))
+            self.cursor_a.value = max(self.from_, 
+                                      min(new_value, self.cursor_b.value))
         else:  # Assuming self.dragged_cursor == self.cursor_b
-            self.cursor_b.value = min(self.to, max(new_value, self.cursor_a.value))
+            self.cursor_b.value = min(self.to, 
+                                      max(new_value, self.cursor_a.value))
 
         self.redraw()
     
