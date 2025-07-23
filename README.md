@@ -1,14 +1,15 @@
 # DoubleScale
 
-tkinter widget
+A tkinter widget that displays two cursors on a slider, to select two values.
 
-Methods:
+## Signature
+
 ```python
 DoubleScale.get_values()				# -> [float, float]
 DoubleScale.set_values(a: float, b: float)
 ```
 
-DoubleScale parameters currently supported:
+## Arguments
 
 ```python
 master: tk.Widget
@@ -21,29 +22,59 @@ offset_x: int		# widget top left corner
 offset_y: int
 decimals: int		# values precision
 bg_color: str		# color options
-bg_outline_up: str
-bg_outline_down: str
 cursor_color: str
-cursor_outline_up: str
-cursor_outline_down: str
+text_color: str
+font: str			# font for the values displayed, can include any option
+					# that a tkinter.font.Font would
 ```
 
 ## Demo
 
 ```python
 import tkinter as tk
+from tk_double_scale import DoubleScale
+
 
 root = tk.Tk()
 root.title('DoubleScale testing')
 root.geometry('300x500+1000+200')
-DoubleScale(root).pack()
-DoubleScale(root, to=10, decimals=1).pack()
-DoubleScale(root, to=1, decimals=-2).pack()
-DoubleScale(root, from_=-100).pack()
-DoubleScale(root, offset_y=40, cursor_color='blue', cursor_outline_up='lightblue', 
-			cursor_outline_down='darkblue', bg_color='#0ff').pack()
-DoubleScale(root, length=50).pack()
-DoubleScale(root, length=200, thickness=30, cursor_width=30).pack()
+root.configure(bg='grey')
+
+
+# Demonstrating several possible arguments
+DoubleScale(root).pack(pady=5)                      # Default parameters
+DoubleScale(root, font='Calibri 20').pack(pady=5)   # Custom font
+DoubleScale(root, from_=-10, to=10).pack(pady=5)    # Custom range
+DoubleScale(root, to=1, decimals=-2).pack(pady=5)   # Custom decimals
+
+# Custom colors
+DoubleScale(root, cursor_color='blue', bg_color='#0ff', 
+            text_color='blue').pack(pady=5)
+
+# Small size
+DoubleScale(root, length=50, thickness=10, cursor_width=5, 
+            font='Calibri 8').pack(pady=5)
+
+# Big size
+scale = DoubleScale(root, length=200, thickness=30, cursor_width=30, 
+                    font='Calibri 20')
+scale.pack(pady=5)
+
+
+# Demonstrating getting and setting values
+print(scale.get_values())   # > [0, 100]
+
+# Values are clamped inside the range defined by from_ and to
+scale.set_values(-10, -10)
+print(scale.get_values())   # > [0, 0]
+
+scale.set_values(200, 200)
+print(scale.get_values())   # > [100, 100]
+
+# Values are rounded according to decimals (default is 0 decimals)
+scale.set_values(25.123, 75.123)
+print(scale.get_values())   # > [25.0, 75.0]
+
 root.mainloop()
 ```
 
