@@ -128,10 +128,16 @@ class DoubleScale(tk.Canvas):
         return [self.cursor_a.value, self.cursor_b.value]
     
     def set_values(self, a, b):
-        self.cursor_a.value = a
-        self.cursor_b.value = b
+        self.cursor_a.value = self.validate(a)
+        self.cursor_b.value = self.validate(b)
         self.redraw()
     
+    def validate(self, value):
+        """
+        Clamp the value between from_ and to, then round according to decimals.
+        """
+        return round(min(self.to, max(self.from_, value)), self.decimals)
+
     def value_to_position(self, value):
         """Convert a value to its corresponding position on the scale."""
         return ((value - self.from_) * self.coeff + self.offset_x 
@@ -144,7 +150,7 @@ class DoubleScale(tk.Canvas):
     
     def pos_to_value_rounded(self, position):
         """Convert a position on the scale back to a value, rounded."""
-        return round(self.position_to_value(position), self.decimals)
+        return self.validate(self.position_to_value(position))
     
     def on_click(self, event):
         """Determine which cursor is being dragged."""
@@ -203,8 +209,8 @@ class DoubleScale(tk.Canvas):
         
         self.draw_3d_box(*coords, self.cursor_colors, tags='cursor')
         
-        display_val = int(cursor.value) if self.decimals == 0 else cursor.value
-        self.create_text(x, cursor.text_y, text=str(display_val), tags='cursor', 
+        display_value = f'{cursor.value:.{self.decimals}f}'
+        self.create_text(x, cursor.text_y, text=display_value, tags='cursor', 
                          font=self.font, fill=self.text_color)
 
     def draw_3d_box(self, xa, ya, xb, yb, colors, tags):
