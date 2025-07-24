@@ -66,18 +66,22 @@ scale.pack(pady=5)
 
 
 # Demonstrating getting and setting values
-print(scale.get_values())   # > [0, 100]
+print(scale.get_values())   # > [0.0, 100.0]
 
 # Values are clamped inside the range defined by from_ and to
 scale.set_values(-10, -10)
-print(scale.get_values())   # > [0, 0]
+print(scale.get_values())   # > [0.0, 0.0]
 
 scale.set_values(200, 200)
-print(scale.get_values())   # > [100, 100]
+print(scale.get_values())   # > [100.0, 100.0]
 
 # Values are rounded according to decimals (default is 0 decimals)
 scale.set_values(25.123, 75.123)
 print(scale.get_values())   # > [25.0, 75.0]
+
+# Change the return type
+print(scale.get_values(return_type=int))   # > [25, 75]
+
 
 root.mainloop()
 ```
