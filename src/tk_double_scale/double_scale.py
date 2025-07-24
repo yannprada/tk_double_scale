@@ -124,8 +124,12 @@ class DoubleScale(tk.Canvas):
         self.bind("<Button-1>", self.on_click)
         self.bind("<B1-Motion>", self.on_drag)
     
-    def get_values(self):
-        return [self.cursor_a.value, self.cursor_b.value]
+    def get_values(self, return_type=float):
+        if not callable(return_type):
+            raise ValueError("return_type must be a callable (int, float, ...)")
+        
+        return [return_type(self.cursor_a.value), 
+                return_type(self.cursor_b.value)]
     
     def set_values(self, a, b):
         self.cursor_a.value = self.validate(a)
